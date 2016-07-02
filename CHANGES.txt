@@ -1,5 +1,6 @@
-[2.0.3]
+[2.1.1]
 
+    * Fixed series column label (fixes #55).
     * Added map view.
 
 [2.0.2]
