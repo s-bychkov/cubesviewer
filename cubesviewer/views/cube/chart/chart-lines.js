@@ -52,13 +52,13 @@ angular.module('cv.views.cube').controller("CubesViewerViewsCubeChartLinesContro
 	 */
 	$scope.drawChartLines = function () {
 
-		var view = $scope.view;
+        var view = $scope.view;
 		var dataRows = $scope.view.grid.data;
 		var columnDefs = view.grid.columnDefs;
 
 		var container = $($element).find("svg").get(0);
 
-		var xAxisLabel = ( (view.params.xaxis != null) ? view.cube.dimensionParts(view.params.xaxis).label : "None")
+		var xAxisLabel = ( (view.params.xaxis != null) ? view.cube.dimensionParts(view.params.xaxis).label : "None");
 
 
 	    // TODO: Check there's only one value column
@@ -66,37 +66,34 @@ angular.module('cv.views.cube').controller("CubesViewerViewsCubeChartLinesContro
 		var d = [];
 	    var numRows = dataRows.length;
 	    var serieCount = 0;
-	    $(dataRows).each(function(idx, e) {
-	    	var serie = [];
-	    	for (var i = 1; i < columnDefs.length; i++) {
-	    		if (columnDefs[i].field in e) {
-	    			var value = e[columnDefs[i].field];
-	    			serie.push( { "x": i, "y":  (value != undefined) ? value : 0 } );
-	    		} else  {
-	    			if (view.params.charttype == "lines-stacked") {
-	    				serie.push( { "x": i, "y":  0 } );
-	    			}
-	    		}
-	    	}
-	    	var series = { "values": serie, "key": e["key"] != "" ? e["key"] : view.params.yaxis };
-	    	if (view.params["chart-disabledseries"]) {
-	    		if (view.params["chart-disabledseries"]["key"] == (view.params.drilldown.join(","))) {
-	    			series.disabled = !! view.params["chart-disabledseries"]["disabled"][series.key];
-	    		}
-	    	}
-	    	d.push(series);
-	    	serieCount++;
-	    });
+
+        $(dataRows).each(function (idx, e) {
+            var serie = [];
+            for (var i = 1; i < columnDefs.length; i++) {
+                if (columnDefs[i].field in e) {
+                    var value = e[columnDefs[i].field];
+                    serie.push({"x": i, "y": (value != undefined) ? value : 0});
+                } else {
+                    if (view.params.charttype == "lines-stacked") {
+                        serie.push({"x": i, "y": 0});
+                    }
+                }
+            }
+
+            var series = {"values": serie, "key": e["key"] != "" ? e["key"] : view.params.yaxis[idx] };
+            if (view.params["chart-disabledseries"]) {
+                if (view.params["chart-disabledseries"]["key"] == (view.params.drilldown.join(","))) {
+                    series.disabled = !!view.params["chart-disabledseries"]["disabled"][series.key];
+                }
+            }
+            d.push(series);
+            serieCount++;
+        });
 	    d.sort(function(a,b) { return a.key < b.key ? -1 : (a.key > b.key ? +1 : 0) });
 
-	    /*
-	    xticks = [];
-	    for (var i = 1; i < colNames.length; i++) {
-    		xticks.push([ i, colNames[i] ]);
-	    }
-	    */
+	    var yaxis = typeof(view.params.yaxis) == 'string' ? view.params.yaxis : view.params.yaxis[0];
+	    var ag = $.grep(view.cube.aggregates, function(ag) {return ag.ref == yaxis})[0];
 
-	    var ag = $.grep(view.cube.aggregates, function(ag) { return ag.ref == view.params.yaxis })[0];
 	    var colFormatter = $scope.columnFormatFunction(ag);
 
 	    if (view.params.charttype != "lines-stacked") {
@@ -118,7 +115,7 @@ angular.module('cv.views.cube').controller("CubesViewerViewsCubeChartLinesContro
 		        	return colFormatter(d);
 		        });
 
-		    	d3.select(container)
+                d3.select(container)
 		    		.datum(d)
 		    		.call(chart);
 

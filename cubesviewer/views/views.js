@@ -128,6 +128,23 @@ angular.module('cv.views').service("viewsService", ['$rootScope', '$window', 'cv
 			params = data;
 		}
 
+		if(typeof(params.yaxis) != 'undefined' && typeof(params.yaxis) == 'string'){
+            params.yaxis = [params.yaxis]
+        }else if(typeof(params.yaxis) == 'undefined'){
+            params.yaxis = []
+        }
+        if(typeof(params.cuts) == 'undefined'){
+            params.cuts = []
+        }
+        if(cvOptions.context != 'undefined'){
+            for(var index in cvOptions.context) {
+                if(cvOptions.context.hasOwnProperty(index)){
+                    var cut = {"dimension": index, "value": cvOptions.context[index], "selected": cvOptions.context[index]};
+                    params.cuts.push(cut)
+                }
+            }
+        }
+
 		// FIXME: cvOptions shall not be passed, and getControlsHidden() shall possibly be part of this view service
 		var view = cubesviewer.CubeView(cvOptions, this.lastViewId, type);
 		$.extend(view.params, params);

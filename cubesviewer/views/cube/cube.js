@@ -336,6 +336,23 @@ angular.module('cv.views.cube').controller("CubesViewerViewsCubeController", ['$
 
 	};
 
+	// remove dimension
+	$scope.removeDimension = function(dimension) {
+
+		var view = $scope.view;
+
+		if (dimension) {
+            view.params.yaxis = $.grep(view.params.yaxis, function (e) {
+                return e == dimension;
+            }, true);
+		} else {
+			view.params.yaxis = [];
+		}
+
+		$scope.refreshView();
+
+	};
+
 
 	/*
 	 * Filters current selection
@@ -379,7 +396,12 @@ angular.module('cv.views.cube').controller("CubesViewerViewsCubeController", ['$
 	 * Selects measure axis
 	 */
 	$scope.selectMeasure = function(measure) {
-		$scope.view.params.yaxis = measure;
+		if(typeof($scope.view.params.yaxis) == 'string'){
+	        $scope.view.params.yaxis = [$scope.view.params.yaxis]
+        }else if(typeof($scope.view.params.yaxis) == 'undefined'){
+            $scope.view.params.yaxis = []
+        }
+		$scope.view.params.yaxis.push(measure);
 		$scope.refreshView();
 	};
 
@@ -427,9 +449,10 @@ angular.module('cv.views.cube').controller("CubesViewerViewsCubeController", ['$
 
 		if (dimension != "") {
 			if (enabled == "1") {
-				view.params.datefilters.push({
+				var mode = view.cvOptions.defaultDateFilter || "auto-yesterday";
+			    view.params.datefilters.push({
 					"dimension" : dimension,
-					"mode" : "auto-last3m",
+					"mode" : mode,
 					"date_from" : null,
 					"date_to" : null
 				});

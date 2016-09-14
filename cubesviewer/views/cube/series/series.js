@@ -187,126 +187,142 @@ cubesviewer._seriesAddRows = function($scope, data) {
 	var baseidx = ((view.params.xaxis == null) ? 0 : 1);
 
 	var addedCols = [];
-	$(data.cells).each(function (idx, e) {
 
-		var row = [];
-		var key = [];
+    view.params.yaxis = typeof(view.params.yaxis) == 'string' ? [view.params.yaxis ] : view.params.yaxis;
+    $(view.params.yaxis).each(function (yaxis_id, yaxis) {
 
-		// For the drilldown level, if present
-		for (var i = 0; i < drilldown.length; i++) {
+        $(data.cells).each(function (idx, e) {
 
-			// Get dimension
-			var parts = view.cube.dimensionParts(drilldown[i]);
-			var infos = parts.hierarchy.readCell(e, parts.level);
+            var row = [];
+            var key = [];
 
-			// Values and Labels
-			var drilldownLevelValues = [];
-			var drilldownLevelLabels = [];
+            // For the drilldown level, if present
+            for (var i = 0; i < drilldown.length; i++) {
 
-			$(infos).each(function(idx, info) {
-				drilldownLevelValues.push(info.key);
-				drilldownLevelLabels.push(info.label);
-			});
+                // Get dimension
+                var parts = view.cube.dimensionParts(drilldown[i]);
+                var infos = parts.hierarchy.readCell(e, parts.level);
 
-			key.push (drilldownLevelLabels.join(" / "));
+                // Values and Labels
+                var drilldownLevelValues = [];
+                var drilldownLevelLabels = [];
 
-		}
+                $(infos).each(function(idx, info) {
+                    drilldownLevelValues.push(info.key);
+                    drilldownLevelLabels.push(info.label);
+                });
 
-		// Set key
-		var colKey = (view.params.xaxis == null) ? view.params.yaxis : key[0];
-		var value = (e[view.params.yaxis]);
-		var rowKey = (view.params.xaxis == null) ? key.join (' / ') : key.slice(1).join (' / ');
+                key.push (drilldownLevelLabels.join(" / "));
 
-		// Search or introduce
-		var row = $.grep(rows, function(ed) { return ed["key"] == rowKey; });
-		if (row.length > 0) {
-			row[0][colKey] = value;
-			row[0]["_cell"] = e;
-		} else {
-			var newrow = {};
-			newrow["key"] = rowKey;
-			newrow[colKey] = value;
+            }
 
-			for (var i = baseidx ; i < key.length; i++) {
-				newrow["key" + (i - baseidx)] = key[i];
-			}
+            // Set key
+            var colKey = (view.params.xaxis == null) ? yaxis : key[0];
+            var value = (e[yaxis]);
+            var rowKey = (view.params.xaxis == null) ? key.join (' / ') : key.slice(1).join (' / ');
+            // Search or introduce
+            var row = $.grep(rows, function(ed) { return ed["key"] == rowKey; });
+            if (row.length > yaxis_id) {
+                row[yaxis_id][colKey] = value;
+                row[yaxis_id]["_cell"] = e;
+            } else {
+                var newrow = {};
+                newrow["key"] = rowKey;
+                newrow[colKey] = value;
+                for (var i = baseidx ; i < key.length; i++) {
+                    newrow["key" + (i - baseidx)] = key[i];
+                }
 
-			newrow["_cell"] = e;
-			rows.push ( newrow );
-		}
+                newrow["_cell"] = e;
+                rows.push ( newrow );
+            }
 
 
-		// Add column definition if the column hasn't been added yet
-		if (addedCols.indexOf(colKey) < 0) {
-			addedCols.push(colKey);
+            // Add column definition if the column hasn't been added yet
+            if (addedCols.indexOf(colKey) < 0) {
+                addedCols.push(colKey);
 
-			var ag = $.grep(view.cube.aggregates, function(ag) { return ag.ref == view.params.yaxis })[0];
+                var ag = $.grep(view.cube.aggregates, function(ag) { return ag.ref == yaxis })[0];
 
-			var col = {
-				name: colKey,
-				field: colKey,
-				index : colKey,
-				cellClass : "text-right",
-				//sorttype : "number",
-				cellTemplate: '<div class="ui-grid-cell-contents" title="TOOLTIP">{{ col.colDef.formatter(COL_FIELD, row, col) }}</div>',
-				formatter: $scope.columnFormatFunction(ag),
-				//footerValue: $scope.columnFormatFunction(ag)(data.summary[ag.ref], null, col)
-				//formatoptions: {},
-				//cellattr: cubesviewer.views.cube.explore.columnTooltipAttr(ag.ref),
-				//footerCellTemplate = '<div class="ui-grid-cell-contents text-right">{{ col.colDef.footerValue }}</div>';
-				enableHiding: false,
-				width: $scope.defineColumnWidth(colKey, 90),
-				sort: $scope.defineColumnSort(colKey),
-			};
-			view.grid.columnDefs.push(col);
-		}
-	});
+                var col = {
+                    name: colKey,
+                    field: colKey,
+                    index : colKey,
+                    cellClass : "text-right",
+                    //sorttype : "number",
+                    cellTemplate: '<div class="ui-grid-cell-contents" title="TOOLTIP">{{ col.colDef.formatter(COL_FIELD, row, col) }}</div>',
+                    formatter: $scope.columnFormatFunction(ag),
+                    // footerValue: $scope.columnFormatFunction(ag)(data.summary[ag.ref], null, col)
+                    //formatoptions: {},
+                    //cellattr: cubesviewer.views.cube.explore.columnTooltipAttr(ag.ref),
+                    //footerCellTemplate = '<div class="ui-grid-cell-contents text-right">{{ col.colDef.footerValue }}</div>';
+                    enableHiding: false,
+                    width: $scope.defineColumnWidth(colKey, 90),
+                    sort: $scope.defineColumnSort(colKey)
+                };
+                view.grid.columnDefs.push(col);
+            }
+        });
 
-	//var label = [];
-	$(view.params.drilldown).each (function (idx, e) {
-		var col = {
-			name: view.cube.cvdim_dim(e).label,
-			field: "key" + idx,
-			index : "key" + idx,
-			headerCellClass: "cv-grid-header-dimension",
-			enableHiding: false,
-			//cellClass : "text-right",
-			//sorttype : "number",
-			//cellTemplate: '<div class="ui-grid-cell-contents" title="TOOLTIP">{{ col.colDef.formatter(COL_FIELD, row, col) }}</div>',
-			//formatter: $scope.columnFormatFunction(ag),
-			//footerValue: $scope.columnFormatFunction(ag)(data.summary[ag.ref], null, col)
-			//formatoptions: {},
-			//cellattr: cubesviewer.views.cube.explore.columnTooltipAttr(ag.ref),
-			//footerCellTemplate = '<div class="ui-grid-cell-contents text-right">{{ col.colDef.footerValue }}</div>';
-			width : $scope.defineColumnWidth("key" + idx, 190),
-			sort: $scope.defineColumnSort("key" + idx),
-			sortingAlgorithm: $scope.sortDimensionParts(view.cube.dimensionParts(e))
-		};
-		view.grid.columnDefs.splice(idx, 0, col);
-	});
+    });
+    if(view.grid.columnDefs.length == $.grep(view.grid.columnDefs, function (ag) {return $.isNumeric(ag.field)}).length){
+        view.grid.columnDefs.sort(function(a,b) {return (parseFloat(a.field) > parseFloat(b.field)) ? 1 : ((parseFloat(b.field) > parseFloat(a.field)) ? -1 : 0);} );
+    }
+    $(rows).each(function (idx, e) {
+        var ag = $.grep(view.cube.aggregates, function (ag) {return ag.name == view.params.yaxis[idx]})[0];
+        if(typeof(ag) != 'undefined') {
+            if (ag.description != 'undefined') {
+                e['key'] = ag.description
+            }
+        }
+    });
 
-	if (view.params.drilldown.length == 0 && rows.length > 0) {
-		rows[0]["key0"] = view.cube.aggregateFromName(view.params.yaxis).label;
+    //var label = [];
+    $(view.params.drilldown).each(function (idx, e) {
+        var col = {
+            name: view.cube.cvdim_dim(e).label,
+            field: "key" + idx,
+            index: "key" + idx,
+            headerCellClass: "cv-grid-header-dimension",
+            enableHiding: false,
+            //cellClass : "text-right",
+            //sorttype : "number",
+            //cellTemplate: '<div class="ui-grid-cell-contents" title="TOOLTIP">{{ col.colDef.formatter(COL_FIELD, row, col) }}</div>',
+            //formatter: $scope.columnFormatFunction(ag),
+            //footerValue: $scope.columnFormatFunction(ag)(data.summary[ag.ref], null, col)
+            //formatoptions: {},
+            //cellattr: cubesviewer.views.cube.explore.columnTooltipAttr(ag.ref),
+            //footerCellTemplate = '<div class="ui-grid-cell-contents text-right">{{ col.colDef.footerValue }}</div>';
+            width: $scope.defineColumnWidth("key" + idx, 190),
+            sort: $scope.defineColumnSort("key" + idx),
+            sortingAlgorithm: $scope.sortDimensionParts(view.cube.dimensionParts(e))
+        };
+        view.grid.columnDefs.splice(idx, 0, col);
+    });
 
-		var col = {
-			name: "Measure",
-			field: "key0",
-			index : "key0",
-			headerCellClass: "cv-grid-header-measure",
-			enableHiding: false,
-			//cellClass : "text-right",
-			//sorttype : "number",
-			//cellTemplate: '<div class="ui-grid-cell-contents" title="TOOLTIP">{{ col.colDef.formatter(COL_FIELD, row, col) }}</div>',
-			//formatter: $scope.columnFormatFunction(ag),
-			//footerValue: $scope.columnFormatFunction(ag)(data.summary[ag.ref], null, col)
-			//formatoptions: {},
-			//cellattr: cubesviewer.views.cube.explore.columnTooltipAttr(ag.ref),
-			//footerCellTemplate = '<div class="ui-grid-cell-contents text-right">{{ col.colDef.footerValue }}</div>';
-			width : $scope.defineColumnWidth("key0", 190),
-			sort: $scope.defineColumnSort("key0")
-		};
-		view.grid.columnDefs.splice(0, 0, col);
-	}
+    if (view.params.drilldown.length == 0 && rows.length > 0) {
+        rows[0]["key0"] = view.cube.aggregateFromName(view.params.yaxis[0]).label;
+
+        var col = {
+            name: "Measure",
+            field: "key0",
+            index: "key0",
+            headerCellClass: "cv-grid-header-measure",
+            enableHiding: false,
+            //cellClass : "text-right",
+            //sorttype : "number",
+            //cellTemplate: '<div class="ui-grid-cell-contents" title="TOOLTIP">{{ col.colDef.formatter(COL_FIELD, row, col) }}</div>',
+            //formatter: $scope.columnFormatFunction(ag),
+            //footerValue: $scope.columnFormatFunction(ag)(data.summary[ag.ref], null, col)
+            //formatoptions: {},
+            //cellattr: cubesviewer.views.cube.explore.columnTooltipAttr(ag.ref),
+            //footerCellTemplate = '<div class="ui-grid-cell-contents text-right">{{ col.colDef.footerValue }}</div>';
+            width: $scope.defineColumnWidth("key0", 190),
+            sort: $scope.defineColumnSort("key0")
+        };
+        view.grid.columnDefs.splice(0, 0, col);
+    }
+
 
 };
 
