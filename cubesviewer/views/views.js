@@ -121,7 +121,7 @@ angular.module('cv.views').service("viewsService", ['$rootScope', '$window', 'cv
 				params = $.parseJSON(data);
 			} catch (err) {
 				console.debug('Error: could not process serialized data (JSON parse error)');
-				dialogService.show('Error: could not process serialized data (JSON parse error).')
+				dialogService.show('Error: could not process serialized data (JSON parse error).');
 				params["name"] = "Undefined view";
 			}
 		} else {
@@ -137,11 +137,16 @@ angular.module('cv.views').service("viewsService", ['$rootScope', '$window', 'cv
             params.cuts = []
         }
         if(cvOptions.context != 'undefined'){
-            for(var index in cvOptions.context) {
-                if(cvOptions.context.hasOwnProperty(index)){
-                    var cut = {"dimension": index, "value": cvOptions.context[index], "selected": cvOptions.context[index]};
-                    params.cuts.push(cut)
+            try{
+                var context = $.parseJSON(cvOptions.context.value);
+                for(var index in context) {
+                    if(context.hasOwnProperty(index)){
+                        var cut = {"dimension": index, "value": context[index], "selected": context[index]};
+                        params.cuts.push(cut)
+                    }
                 }
+            }catch (err){
+                console.debug('Error: could not process serialized context (JSON parse error)');
             }
         }
 
