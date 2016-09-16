@@ -222,9 +222,10 @@ cubesviewer._seriesAddRows = function($scope, data) {
             var rowKey = (view.params.xaxis == null) ? key.join (' / ') : key.slice(1).join (' / ');
             // Search or introduce
             var row = $.grep(rows, function(ed) { return ed["key"] == rowKey; });
-            if (row.length > yaxis_id) {
-                row[yaxis_id][colKey] = value;
-                row[yaxis_id]["_cell"] = e;
+			var row_id = (view.params.mode == 'series') ? 0 : yaxis_id;
+            if (row.length > row_id) {
+                row[row_id][colKey] = value;
+                row[row_id]["_cell"] = e;
             } else {
                 var newrow = {};
                 newrow["key"] = rowKey;

@@ -149,10 +149,12 @@ angular.module('cv.views.cube').controller("CubesViewerViewsCubeController", ['$
 
 			// Check cuts in cube dimensions
 			$.each($scope.view.params.cuts, function (idx, cut) {
-                if($scope.view.cube.cvdim_dim(cut.dimension) == null){
-                    $scope.view.params.cuts.splice(idx, 1)
-                }
-            });
+				if (typeof(cut) != 'undefined') {
+					if ($scope.view.cube.cvdim_dim(cut.dimension) == null) {
+						$scope.view.params.cuts.splice(idx, 1)
+					}
+				}
+			});
 
 			$scope.view.state = cubesviewer.VIEW_STATE_INITIALIZED;
 			$scope.view.error = "";
