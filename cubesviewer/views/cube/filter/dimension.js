@@ -53,6 +53,7 @@ angular.module('cv.views.cube').controller("CubesViewerViewsCubeFilterDimensionC
 				break;
 			}
 		}
+		$scope.filterShowAll = typeof (view.cvOptions.filterShowAll) == 'undefined' ? $scope.filterShowAll : view.cvOptions.filterShowAll;
 	};
 
 	$scope.$watch("view.dimensionFilter", function() {
